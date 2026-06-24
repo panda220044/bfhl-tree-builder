@@ -4,6 +4,10 @@ A production-ready full-stack Next.js application designed to parse node connect
 
 ![Application Dashboard Mockup](public/screenshot.png)
 
+### 🔗 Live Production Links
+- **Live Demo Website:** [https://bfhl-tree-builder.vercel.app](https://bfhl-tree-builder.vercel.app)
+- **POST API Endpoint:** [https://bfhl-tree-builder.vercel.app/api/bfhl](https://bfhl-tree-builder.vercel.app/api/bfhl)
+
 ---
 
 ## ⚡ Tech Stack & Architecture
