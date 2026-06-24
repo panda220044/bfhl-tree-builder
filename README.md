@@ -2,7 +2,7 @@
 
 A production-ready full-stack Next.js application designed to parse node connections, build independent tree hierarchies, handle edge validation rules, isolate duplicates, resolve multi-parent conflicts, and detect/visualize cycles.
 
-![Application Dashboard Mockup](public/screenshot.png)
+<img width="1111" height="847" alt="Screenshot 2026-06-24 193230" src="https://github.com/user-attachments/assets/38e88008-cc95-4573-a181-2496254e1f96" />
 
 ### 🔗 Live Production Links
 - **Live Demo Website:** [https://bfhl-tree-builder.vercel.app](https://bfhl-tree-builder.vercel.app)
