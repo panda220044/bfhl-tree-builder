@@ -9,7 +9,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8 text-foreground/35">
         <span className="text-4xl mb-2">🌿</span>
-        <h3 className="text-sm font-semibold">No Graph Data</h3>
+        <h3 className="text-sm font-semibold text-foreground/60">No Graph Data</h3>
         <p className="text-xs max-w-xs mt-1 leading-relaxed">
           Submit relations in the editor on the left to render the tree hierarchies.
         </p>
@@ -17,16 +17,16 @@ export default function GraphVisualizer({ hierarchies = [] }) {
     );
   }
 
-  // Dimension settings (Expanded height and widths for clear layout spacing)
-  const width = 800;
-  const height = 550;
+  // Dynamic SVG Width: Allocates a generous 350px per connected component, ensuring nodes never overlap
+  const H = hierarchies.length;
+  const canvasWidth = Math.max(800, H * 350);
+  const canvasHeight = 480;
 
   const nodes = [];
   const links = [];
-  const H = hierarchies.length;
-  const secWidth = width / H;
+  const secWidth = canvasWidth / H;
 
-  // Track colors for different components
+  // Colors for different components
   const getColorScheme = (hierarchy, index) => {
     if (hierarchy.has_cycle) {
       return {
@@ -62,16 +62,16 @@ export default function GraphVisualizer({ hierarchies = [] }) {
   // Layout algorithm
   hierarchies.forEach((hierarchy, hIndex) => {
     const scheme = getColorScheme(hierarchy, hIndex);
-    const xMin = hIndex * secWidth + 40;
-    const xMax = (hIndex + 1) * secWidth - 40;
+    const xMin = hIndex * secWidth + 50;
+    const xMax = (hIndex + 1) * secWidth - 50;
 
     if (hierarchy.has_cycle) {
-      // ── Pure Cycle circular layout ──
+      // ── Cycle component layout ──
       const cycleNodes = hierarchy.cycle_nodes || [hierarchy.root];
       const L = cycleNodes.length;
       const cx = (xMin + xMax) / 2;
-      const cy = height / 2;
-      const r = Math.min(secWidth / 3.2, 90); // Increased radius
+      const cy = canvasHeight / 2;
+      const r = Math.min(secWidth / 3.2, 90);
 
       const cyclePositions = {};
 
@@ -108,10 +108,9 @@ export default function GraphVisualizer({ hierarchies = [] }) {
       const tree = hierarchy.tree;
       const root = hierarchy.root;
 
-      // Spreads children and parents using depth scaling
       const traverseTree = (nodeName, currentSubtree, depth, xStart, xEnd) => {
         const x = (xStart + xEnd) / 2;
-        const y = 80 + depth * 110; // Spaced vertical depth
+        const y = 80 + depth * 110;
 
         const parentPos = { x, y };
 
@@ -185,159 +184,170 @@ export default function GraphVisualizer({ hierarchies = [] }) {
         </div>
       </div>
 
-      {/* SVG Canvas */}
-      <div className="flex-1 bg-surface-primary/20 rounded-2xl overflow-hidden relative border border-border/30 shadow-inner">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-full select-none"
-          xmlns="http://www.w3.org/2000/svg"
+      {/* SVG Canvas Container with horizontal scrollbars for clean spacing */}
+      <div className="flex-1 bg-surface-primary/20 rounded-2xl border border-border/30 shadow-inner overflow-auto">
+        <div
+          style={{
+            width: `${canvasWidth}px`,
+            height: '100%',
+            minHeight: `${canvasHeight}px`,
+          }}
+          className="relative"
         >
-          {/* Filters and Arrowhead Markers */}
-          <defs>
-            <pattern id="workspace-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255, 255, 255, 0.015)" strokeWidth="1" />
-            </pattern>
+          <svg
+            viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+            width={canvasWidth}
+            height="100%"
+            className="select-none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Filters and Arrowhead Markers */}
+            <defs>
+              <pattern id="workspace-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255, 255, 255, 0.015)" strokeWidth="1" />
+              </pattern>
 
-            <filter id="purple-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#8b5cf6" floodOpacity="0.8" />
-            </filter>
-            <filter id="cyan-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#06b6d4" floodOpacity="0.8" />
-            </filter>
-            <filter id="rose-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#f43f5e" floodOpacity="0.8" />
-            </filter>
+              <filter id="purple-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#8b5cf6" floodOpacity="0.8" />
+              </filter>
+              <filter id="cyan-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#06b6d4" floodOpacity="0.8" />
+              </filter>
+              <filter id="rose-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#f43f5e" floodOpacity="0.8" />
+              </filter>
 
-            {/* Directing arrows for connection paths — refX is aligned with circle boundary (radius 23) */}
-            <marker id="arrow-purple" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
-            </marker>
-            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4" />
-            </marker>
-            <marker id="arrow-rose" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
-            </marker>
+              {/* Directing arrows — refX aligned with circle boundary (radius 23) */}
+              <marker id="arrow-purple" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
+              </marker>
+              <marker id="arrow-cyan" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4" />
+              </marker>
+              <marker id="arrow-rose" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
+              </marker>
 
-            {/* Hover arrow indicators — refX aligned with hover circle boundary (radius 27) */}
-            <marker id="arrow-purple-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc" />
-            </marker>
-            <marker id="arrow-cyan-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee" />
-            </marker>
-            <marker id="arrow-rose-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb7185" />
-            </marker>
-          </defs>
+              {/* Hover arrow indicators — refX aligned with hover circle boundary (radius 27) */}
+              <marker id="arrow-purple-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc" />
+              </marker>
+              <marker id="arrow-cyan-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee" />
+              </marker>
+              <marker id="arrow-rose-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb7185" />
+              </marker>
+            </defs>
 
-          {/* Render Blueprint Grid */}
-          <rect width="100%" height="100%" fill="url(#workspace-grid)" />
+            {/* Render Blueprint Grid */}
+            <rect width="100%" height="100%" fill="url(#workspace-grid)" />
 
-          {/* Render Link Connection Paths */}
-          {links.map((link, idx) => {
-            const isHovered = hoveredNode === link.fromName || hoveredNode === link.toName;
-            return (
-              <g key={idx}>
-                {isHovered && (
+            {/* Render Link Connection Paths */}
+            {links.map((link, idx) => {
+              const isHovered = hoveredNode === link.fromName || hoveredNode === link.toName;
+              return (
+                <g key={idx}>
+                  {isHovered && (
+                    <line
+                      x1={link.from.x}
+                      y1={link.from.y}
+                      x2={link.to.x}
+                      y2={link.to.y}
+                      stroke={link.scheme.stroke}
+                      strokeWidth="5"
+                      opacity="0.3"
+                      className="transition-all duration-300"
+                    />
+                  )}
                   <line
                     x1={link.from.x}
                     y1={link.from.y}
                     x2={link.to.x}
                     y2={link.to.y}
-                    stroke={link.scheme.stroke}
-                    strokeWidth="5"
-                    opacity="0.3"
+                    stroke={isHovered ? '#ffffff' : link.scheme.stroke}
+                    strokeWidth={isHovered ? '2.8' : '2.2'}
+                    opacity={isHovered ? '1' : '0.75'}
+                    markerEnd={isHovered ? link.scheme.markerHover : link.scheme.marker}
                     className="transition-all duration-300"
                   />
-                )}
-                <line
-                  x1={link.from.x}
-                  y1={link.from.y}
-                  x2={link.to.x}
-                  y2={link.to.y}
-                  stroke={isHovered ? '#ffffff' : link.scheme.stroke}
-                  strokeWidth={isHovered ? '2.8' : '2.2'}
-                  opacity={isHovered ? '1' : '0.75'}
-                  markerEnd={isHovered ? link.scheme.markerHover : link.scheme.marker}
-                  className="transition-all duration-300"
-                />
-              </g>
-            );
-          })}
+                </g>
+              );
+            })}
 
-          {/* Render Nodes */}
-          {nodes.map((node, idx) => {
-            const isHovered = hoveredNode === node.name;
-            const radius = isHovered ? 27 : 23; // Substantially larger node sizes
+            {/* Render Nodes */}
+            {nodes.map((node, idx) => {
+              const isHovered = hoveredNode === node.name;
+              const radius = isHovered ? 27 : 23;
 
-            return (
-              <g
-                key={idx}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredNode(node.name)}
-                onMouseLeave={() => setHoveredNode(null)}
-              >
-                {/* Glowing Outer Ring */}
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={radius}
-                  stroke={isHovered ? '#ffffff' : node.scheme.stroke}
-                  strokeWidth={isHovered ? '3.5' : '2.5'}
-                  fill={node.scheme.fill}
-                  filter={node.scheme.glow}
-                  className="transition-all duration-300 ease-out"
-                />
-
-                {/* Inner Circle Base */}
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={radius}
-                  fill="#0a0a0f"
-                  stroke="transparent"
-                  className="transition-all duration-300 ease-out"
-                />
-
-                {/* Node Name Text */}
-                <text
-                  x={node.x}
-                  y={node.y}
-                  textAnchor="middle"
-                  dy=".3em"
-                  fill={isHovered ? '#ffffff' : '#f1f5f9'}
-                  fontSize={isHovered ? '13' : '12'}
-                  fontWeight="800"
-                  fontFamily="'JetBrains Mono', monospace"
-                  className="transition-all duration-300 ease-out"
+              return (
+                <g
+                  key={idx}
+                  className="cursor-pointer"
+                  onMouseEnter={() => setHoveredNode(node.name)}
+                  onMouseLeave={() => setHoveredNode(null)}
                 >
-                  {node.name}
-                </text>
+                  {/* Glowing Outer Ring */}
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={radius}
+                    stroke={isHovered ? '#ffffff' : node.scheme.stroke}
+                    strokeWidth={isHovered ? '3.5' : '2.5'}
+                    fill={node.scheme.fill}
+                    filter={node.scheme.glow}
+                    className="transition-all duration-300 ease-out"
+                  />
 
-                {/* Cycle Warning icon overlay */}
-                {node.isCycle && (
-                  <g transform={`translate(${node.x + 12}, ${node.y + 12})`}>
-                    <circle cx="0" cy="0" r="7" fill="#f43f5e" />
-                    <text
-                      x="0"
-                      y="0"
-                      textAnchor="middle"
-                      dy=".3em"
-                      fontSize="8"
-                      fontWeight="bold"
-                      fill="#ffffff"
-                    >
-                      !
-                    </text>
-                  </g>
-                )}
+                  {/* Inner Circle Base */}
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={radius}
+                    fill="#0a0a0f"
+                    stroke="transparent"
+                    className="transition-all duration-300 ease-out"
+                  />
 
-                <title>Node {node.name} {node.isCycle ? '(In Cycle Component)' : ''}</title>
-              </g>
-            );
-          })}
-        </svg>
+                  {/* Node Name Text */}
+                  <text
+                    x={node.x}
+                    y={node.y}
+                    textAnchor="middle"
+                    dy=".3em"
+                    fill={isHovered ? '#ffffff' : '#f1f5f9'}
+                    fontSize={isHovered ? '13' : '12'}
+                    fontWeight="800"
+                    fontFamily="'JetBrains Mono', monospace"
+                    className="transition-all duration-300 ease-out"
+                  >
+                    {node.name}
+                  </text>
+
+                  {/* Cycle Warning icon overlay */}
+                  {node.isCycle && (
+                    <g transform={`translate(${node.x + 12}, ${node.y + 12})`}>
+                      <circle cx="0" cy="0" r="7" fill="#f43f5e" />
+                      <text
+                        x="0"
+                        y="0"
+                        textAnchor="middle"
+                        dy=".3em"
+                        fontSize="8"
+                        fontWeight="bold"
+                        fill="#ffffff"
+                      >
+                        !
+                      </text>
+                    </g>
+                  )}
+
+                  <title>Node {node.name} {node.isCycle ? '(In Cycle Component)' : ''}</title>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
       </div>
     </div>
   );

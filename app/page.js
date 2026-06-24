@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Sidebar from '@/components/Sidebar';
 import RelationEditor from '@/components/RelationEditor';
 import GraphVisualizer from '@/components/GraphVisualizer';
 import JsonOutput from '@/components/JsonOutput';
@@ -20,7 +19,6 @@ M -> N
 N -> M`;
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('Builder');
   const [inputText, setInputText] = useState(INITIAL_MOCKUP_INPUT);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,7 +32,7 @@ export default function Home() {
     errorsDetected: '0',
   });
 
-  // Automatically submit initial layout on load to populate the gorgeous mockup
+  // Automatically submit initial layout on load
   useEffect(() => {
     processData(INITIAL_MOCKUP_INPUT);
   }, []);
@@ -145,101 +143,105 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#0a0a0f] text-foreground overflow-hidden">
-      {/* Left Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className="min-h-screen w-full bg-[#0a0a0f] text-foreground flex flex-col">
+      {/* Top Banner Header */}
+      <header className="px-8 py-5 border-b border-border bg-[#0a0a0f]/60 backdrop-blur-md sticky top-0 z-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-xl bg-accent-purple/20 border border-accent-purple/40 flex items-center justify-center text-accent-purple text-lg shadow-[0_0_15px_rgba(139,92,246,0.25)]">
+            🌿
+          </div>
+          <div>
+            <h1 className="text-base font-extrabold tracking-wider uppercase text-foreground leading-none">
+              BFHL Tree Hierarchy Builder
+            </h1>
+            <p className="text-[10px] text-foreground/45 mt-1 font-mono">
+              26BCE1001 • Eash Mahajan • eashita@college.edu
+            </p>
+          </div>
+        </div>
 
-      {/* Main Workspace */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-surface-primary/10">
-        {/* Workspace Top Header */}
-        <header className="px-8 py-5 border-b border-border flex items-center justify-between shrink-0 bg-[#0a0a0f]/40 backdrop-blur-md">
-          <h2 className="text-xl font-bold tracking-tight text-foreground/90">
-            {activeTab}
-          </h2>
+        {/* Live Indicator Status */}
+        <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald text-xs font-mono font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald animate-pulse-glow" />
+          <span>Production Build Live</span>
+        </div>
+      </header>
 
-          <div className="flex items-center space-x-3">
-            {/* Live Indicator Status */}
-            <div className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald text-[11px] font-mono font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald animate-pulse-glow" />
-              <span>Production Build Live</span>
+      {/* Main Content Dashboard Container */}
+      <div className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 space-y-6 overflow-y-auto">
+        {/* Stat Cards Row */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Total Nodes */}
+          <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
+              Total Nodes
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
+              {stats.totalNodes}
             </div>
           </div>
-        </header>
 
-        {/* Dashboard Content Container */}
-        <div className="p-8 flex-1 flex flex-col gap-6 overflow-hidden max-w-7xl mx-auto w-full">
-          {/* Stat Cards (First Row) */}
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
-            {/* Total Nodes */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
-                Total Nodes
-              </span>
-              <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {stats.totalNodes}
-              </div>
+          {/* Active Trees */}
+          <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
+              Active Trees
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
+              {stats.activeTrees}
             </div>
+          </div>
 
-            {/* Active Trees */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
-                Active Trees
-              </span>
-              <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {stats.activeTrees}
-              </div>
+          {/* Total Relations */}
+          <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
+              Total Relations
+            </span>
+            <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
+              {stats.totalRelations}
             </div>
+          </div>
 
-            {/* Total Relations */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
-                Total Relations
-              </span>
-              <div className="text-2xl font-bold tracking-tight text-foreground font-mono">
-                {stats.totalRelations}
-              </div>
+          {/* Errors Detected */}
+          <div className={`p-5 rounded-2xl border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)] ${
+            stats.errorsDetected !== '0' ? 'border-accent-rose/30 text-accent-rose' : 'border-border'
+          }`}>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
+              Errors Detected
+            </span>
+            <div className="text-2xl font-bold tracking-tight font-mono">
+              {stats.errorsDetected}
             </div>
+          </div>
+        </section>
 
-            {/* Errors Detected */}
-            <div className={`p-5 rounded-2xl border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)] ${
-              stats.errorsDetected !== '0' ? 'border-accent-rose/30 text-accent-rose' : 'border-border'
-            }`}>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
-                Errors Detected
-              </span>
-              <div className="text-2xl font-bold tracking-tight font-mono">
-                {stats.errorsDetected}
-              </div>
-            </div>
-          </section>
+        {/* Workspace Panels Grid (Editor side-by-side with Visualizer for equal heights) */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {/* Left: RELATIONSHIP EDITOR */}
+          <div className="h-[600px] min-h-[500px]">
+            <RelationEditor
+              value={inputText}
+              onChange={setInputText}
+              onValidate={handleValidate}
+              loading={loading}
+            />
+          </div>
 
-          {/* Main Workspace Columns Grid */}
-          <section className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden min-h-0">
-            {/* Left: RELATIONSHIP EDITOR with nested validate trigger */}
-            <div className="h-full flex flex-col min-h-0">
-              <RelationEditor
-                value={inputText}
-                onChange={setInputText}
-                onValidate={handleValidate}
-                loading={loading}
-              />
-            </div>
+          {/* Right: HIERARCHY VIEW */}
+          <div className="h-[600px] min-h-[500px]">
+            <GraphVisualizer hierarchies={results?.hierarchies} />
+          </div>
+        </section>
 
-            {/* Right: HIERARCHY VIEW & OUTPUT */}
-            <div className="h-full flex flex-col gap-6 min-h-0">
-              {/* Hierarchy Visualizer Panel */}
-              <div className="flex-[3] min-h-0">
-                <GraphVisualizer hierarchies={results?.hierarchies} />
-              </div>
+        {/* Bottom Full-Width Section: OUTPUT (JSON VIEW) */}
+        <section className="w-full">
+          <JsonOutput data={results} />
+        </section>
+      </div>
 
-              {/* JSON Output Viewer Panel */}
-              <div className="flex-[2] min-h-0">
-                <JsonOutput data={results} />
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
+      {/* Footer Banner */}
+      <footer className="py-6 border-t border-border/50 text-center text-[10px] text-foreground/30 font-mono shrink-0">
+        BFHL Assessment Solution • Built with Next.js 15, Tailwind CSS, & Vercel
+      </footer>
     </div>
   );
 }
