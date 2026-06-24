@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function GraphVisualizer({ hierarchies = [] }) {
+  const [hoveredNode, setHoveredNode] = useState(null);
+
   if (!hierarchies || hierarchies.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8 text-foreground/35">
@@ -29,27 +31,29 @@ export default function GraphVisualizer({ hierarchies = [] }) {
     if (hierarchy.has_cycle) {
       return {
         stroke: '#f43f5e',
-        fill: 'rgba(244, 63, 94, 0.1)',
+        fill: 'rgba(244, 63, 94, 0.15)',
         glow: 'url(#rose-glow)',
         marker: 'url(#arrow-rose)',
+        markerHover: 'url(#arrow-rose-hover)',
         accent: 'text-accent-rose',
       };
     }
-    // Alternate tree colors
     if (index % 2 === 0) {
       return {
         stroke: '#8b5cf6',
-        fill: 'rgba(139, 92, 246, 0.1)',
+        fill: 'rgba(139, 92, 246, 0.15)',
         glow: 'url(#purple-glow)',
         marker: 'url(#arrow-purple)',
+        markerHover: 'url(#arrow-purple-hover)',
         accent: 'text-accent-purple',
       };
     } else {
       return {
         stroke: '#06b6d4',
-        fill: 'rgba(6, 182, 212, 0.1)',
+        fill: 'rgba(6, 182, 212, 0.15)',
         glow: 'url(#cyan-glow)',
         marker: 'url(#arrow-cyan)',
+        markerHover: 'url(#arrow-cyan-hover)',
         accent: 'text-accent-cyan',
       };
     }
@@ -62,11 +66,10 @@ export default function GraphVisualizer({ hierarchies = [] }) {
     const xMax = (hIndex + 1) * secWidth - 30;
 
     if (hierarchy.has_cycle) {
-      // ── Pure Cycle circular layout ──
       const cycleNodes = hierarchy.cycle_nodes || [hierarchy.root];
       const L = cycleNodes.length;
       const cx = (xMin + xMax) / 2;
-      const cy = height / 2 - 10;
+      const cy = height / 2;
       const r = Math.min(secWidth / 3.5, 75);
 
       const cyclePositions = {};
@@ -92,13 +95,14 @@ export default function GraphVisualizer({ hierarchies = [] }) {
         const from = cycleNodes[i];
         const to = cycleNodes[(i + 1) % L];
         links.push({
+          fromName: from,
+          toName: to,
           from: cyclePositions[from],
           to: cyclePositions[to],
           scheme,
         });
       }
     } else {
-      // ── Tree layout ──
       const tree = hierarchy.tree;
       const root = hierarchy.root;
 
@@ -133,6 +137,8 @@ export default function GraphVisualizer({ hierarchies = [] }) {
             );
 
             links.push({
+              fromName: nodeName,
+              toName: childName,
               from: parentPos,
               to: childPos,
               scheme,
@@ -158,7 +164,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
   });
 
   return (
-    <div className="w-full flex flex-col h-full bg-[#12121a]/30 border border-border rounded-2xl p-6 relative overflow-hidden backdrop-blur-md">
+    <div className="w-full flex flex-col h-full bg-[#12121a]/30 border border-border/80 rounded-3xl p-6 relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:border-white/10">
       {/* Visualizer Header */}
       <div className="flex items-center justify-between mb-4 border-b border-border/40 pb-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">
@@ -177,7 +183,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
       </div>
 
       {/* SVG Canvas */}
-      <div className="flex-1 bg-surface-primary/10 rounded-xl overflow-hidden relative border border-border/30">
+      <div className="flex-1 bg-surface-primary/20 rounded-2xl overflow-hidden relative border border-border/30 shadow-inner">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full select-none"
@@ -185,6 +191,11 @@ export default function GraphVisualizer({ hierarchies = [] }) {
         >
           {/* Filters for neon glow dropshadows */}
           <defs>
+            {/* Technical grid pattern */}
+            <pattern id="workspace-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255, 255, 255, 0.015)" strokeWidth="1" />
+            </pattern>
+
             <filter id="purple-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#8b5cf6" floodOpacity="0.8" />
             </filter>
@@ -196,117 +207,136 @@ export default function GraphVisualizer({ hierarchies = [] }) {
             </filter>
 
             {/* Directing arrows for connection paths */}
-            <marker
-              id="arrow-purple"
-              viewBox="0 0 10 10"
-              refX="23"
-              refY="5"
-              markerWidth="5"
-              markerHeight="5"
-              orient="auto-start-reverse"
-            >
+            <marker id="arrow-purple" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
             </marker>
-            <marker
-              id="arrow-cyan"
-              viewBox="0 0 10 10"
-              refX="23"
-              refY="5"
-              markerWidth="5"
-              markerHeight="5"
-              orient="auto-start-reverse"
-            >
+            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4" />
             </marker>
-            <marker
-              id="arrow-rose"
-              viewBox="0 0 10 10"
-              refX="23"
-              refY="5"
-              markerWidth="5"
-              markerHeight="5"
-              orient="auto-start-reverse"
-            >
+            <marker id="arrow-rose" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
+            </marker>
+
+            {/* Directing arrows on hovered edges (darker/thicker glow) */}
+            <marker id="arrow-purple-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc" />
+            </marker>
+            <marker id="arrow-cyan-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee" />
+            </marker>
+            <marker id="arrow-rose-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb7185" />
             </marker>
           </defs>
 
+          {/* Render Blueprint Grid */}
+          <rect width="100%" height="100%" fill="url(#workspace-grid)" />
+
           {/* Render Link Connection Paths */}
-          {links.map((link, idx) => (
-            <line
-              key={idx}
-              x1={link.from.x}
-              y1={link.from.y}
-              x2={link.to.x}
-              y2={link.to.y}
-              stroke={link.scheme.stroke}
-              strokeWidth="2"
-              opacity="0.85"
-              markerEnd={link.scheme.marker}
-              className="transition-all duration-300"
-            />
-          ))}
+          {links.map((link, idx) => {
+            const isHovered = hoveredNode === link.fromName || hoveredNode === link.toName;
+            return (
+              <g key={idx}>
+                {/* Dynamic thick background glow on hover */}
+                {isHovered && (
+                  <line
+                    x1={link.from.x}
+                    y1={link.from.y}
+                    x2={link.to.x}
+                    y2={link.to.y}
+                    stroke={link.scheme.stroke}
+                    strokeWidth="5"
+                    opacity="0.3"
+                    className="transition-all duration-300"
+                  />
+                )}
+                <line
+                  x1={link.from.x}
+                  y1={link.from.y}
+                  x2={link.to.x}
+                  y2={link.to.y}
+                  stroke={isHovered ? '#ffffff' : link.scheme.stroke}
+                  strokeWidth={isHovered ? '2.5' : '1.8'}
+                  opacity={isHovered ? '1' : '0.75'}
+                  markerEnd={isHovered ? link.scheme.markerHover : link.scheme.marker}
+                  className="transition-all duration-300"
+                />
+              </g>
+            );
+          })}
 
           {/* Render Nodes */}
-          {nodes.map((node, idx) => (
-            <g key={idx} className="cursor-pointer group">
-              {/* Glowing Outer Ring */}
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r="18"
-                stroke={node.scheme.stroke}
-                strokeWidth="2"
-                fill={node.scheme.fill}
-                filter={node.scheme.glow}
-                className="transition-all duration-300 group-hover:r-20"
-              />
-              
-              {/* Inner Circle Base */}
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r="18"
-                fill="#0a0a0f"
-                stroke="transparent"
-              />
+          {nodes.map((node, idx) => {
+            const isHovered = hoveredNode === node.name;
+            const radius = isHovered ? 21 : 18;
 
-              {/* Node Name Text */}
-              <text
-                x={node.x}
-                y={node.y}
-                textAnchor="middle"
-                dy=".3em"
-                fill="#ffffff"
-                fontSize="11"
-                fontWeight="700"
-                fontFamily="'JetBrains Mono', monospace"
+            return (
+              <g
+                key={idx}
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredNode(node.name)}
+                onMouseLeave={() => setHoveredNode(null)}
               >
-                {node.name}
-              </text>
+                {/* Glowing Outer Ring */}
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={radius}
+                  stroke={isHovered ? '#ffffff' : node.scheme.stroke}
+                  strokeWidth={isHovered ? '3' : '2'}
+                  fill={node.scheme.fill}
+                  filter={node.scheme.glow}
+                  className="transition-all duration-300 ease-out"
+                />
 
-              {/* Cycle Warning icon overlay */}
-              {node.isCycle && (
-                <g transform={`translate(${node.x + 10}, ${node.y + 10})`}>
-                  <circle cx="0" cy="0" r="6" fill="#f43f5e" />
-                  <text
-                    x="0"
-                    y="0"
-                    textAnchor="middle"
-                    dy=".3em"
-                    fontSize="7"
-                    fontWeight="bold"
-                    fill="#ffffff"
-                  >
-                    !
-                  </text>
-                </g>
-              )}
+                {/* Inner Circle Base */}
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={radius}
+                  fill="#0a0a0f"
+                  stroke="transparent"
+                  className="transition-all duration-300 ease-out"
+                />
 
-              {/* Tooltip on hover */}
-              <title>Node {node.name} {node.isCycle ? '(In Cycle Component)' : ''}</title>
-            </g>
-          ))}
+                {/* Node Name Text */}
+                <text
+                  x={node.x}
+                  y={node.y}
+                  textAnchor="middle"
+                  dy=".3em"
+                  fill={isHovered ? '#ffffff' : '#e2e8f0'}
+                  fontSize={isHovered ? '12' : '11'}
+                  fontWeight="700"
+                  fontFamily="'JetBrains Mono', monospace"
+                  className="transition-all duration-300 ease-out"
+                >
+                  {node.name}
+                </text>
+
+                {/* Cycle Warning icon overlay */}
+                {node.isCycle && (
+                  <g transform={`translate(${node.x + 10}, ${node.y + 10})`}>
+                    <circle cx="0" cy="0" r="6" fill="#f43f5e" />
+                    <text
+                      x="0"
+                      y="0"
+                      textAnchor="middle"
+                      dy=".3em"
+                      fontSize="7"
+                      fontWeight="bold"
+                      fill="#ffffff"
+                    >
+                      !
+                    </text>
+                  </g>
+                )}
+
+                {/* Tooltip on hover */}
+                <title>Node {node.name} {node.isCycle ? '(In Cycle Component)' : ''}</title>
+              </g>
+            );
+          })}
         </svg>
       </div>
     </div>
