@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node __tests__/bfhl.test.mjs"
+    "test": "node __tests__/bfhl.test.mjs && node __tests__/edge_cases.test.mjs"
   },
   "dependencies": {
     "next": "^15.0.0",

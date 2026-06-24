@@ -2,6 +2,8 @@
 
 A production-ready full-stack Next.js application designed to parse node connections, build independent tree hierarchies, handle edge validation rules, isolate duplicates, resolve multi-parent conflicts, and detect/visualize cycles.
 
+![Application Dashboard Mockup](public/screenshot.png)
+
 ---
 
 ## ⚡ Tech Stack & Architecture
