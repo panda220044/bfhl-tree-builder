@@ -101,7 +101,6 @@ export default function Home() {
       setResults(data);
 
       // Compute stats
-      // 1. Total unique nodes
       const nodeSet = new Set();
       edges.forEach((edge) => {
         const parts = edge.split('->');
@@ -159,36 +158,11 @@ export default function Home() {
           </h2>
 
           <div className="flex items-center space-x-3">
-            {/* Tooltip Selector */}
-            <div className="relative">
-              <button className="px-3.5 py-2 text-xs font-semibold rounded-xl bg-surface-secondary border border-border hover:bg-surface-hover hover:border-border-hover transition flex items-center space-x-2 text-foreground/85">
-                <span>Tooltips: Refresh View</span>
-                <span className="text-[9px] opacity-60">▼</span>
-              </button>
+            {/* Live Indicator Status */}
+            <div className="flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald text-[11px] font-mono font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-emerald animate-pulse-glow" />
+              <span>Production Build Live</span>
             </div>
-
-            {/* Validate/Build Trigger Button */}
-            <button
-              onClick={handleValidate}
-              disabled={loading}
-              className="px-5 py-2 text-xs font-bold rounded-xl bg-accent-purple hover:bg-accent-purple/90 text-white transition shadow-lg shadow-accent-purple/20 flex items-center space-x-2 border border-accent-purple/40"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>Building...</span>
-                </>
-              ) : (
-                <>
-                  <span>⚡</span>
-                  <span>Build Trees</span>
-                  <span className="text-[9px] opacity-70">▼</span>
-                </>
-              )}
-            </button>
           </div>
         </header>
 
@@ -197,7 +171,7 @@ export default function Home() {
           {/* Stat Cards (First Row) */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
             {/* Total Nodes */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm">
+            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
                 Total Nodes
               </span>
@@ -207,7 +181,7 @@ export default function Home() {
             </div>
 
             {/* Active Trees */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm">
+            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
                 Active Trees
               </span>
@@ -217,7 +191,7 @@ export default function Home() {
             </div>
 
             {/* Total Relations */}
-            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm">
+            <div className="p-5 rounded-2xl border border-border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)]">
               <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
                 Total Relations
               </span>
@@ -227,7 +201,7 @@ export default function Home() {
             </div>
 
             {/* Errors Detected */}
-            <div className={`p-5 rounded-2xl border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm ${
+            <div className={`p-5 rounded-2xl border bg-[#12121a]/30 relative overflow-hidden backdrop-blur-sm transition-all duration-300 hover:border-white/10 hover:shadow-[0_0_20px_rgba(255,255,255,0.01)] ${
               stats.errorsDetected !== '0' ? 'border-accent-rose/30 text-accent-rose' : 'border-border'
             }`}>
               <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 block mb-1">
@@ -241,7 +215,7 @@ export default function Home() {
 
           {/* Main Workspace Columns Grid */}
           <section className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden min-h-0">
-            {/* Left: RELATIONSHIP EDITOR */}
+            {/* Left: RELATIONSHIP EDITOR with nested validate trigger */}
             <div className="h-full flex flex-col min-h-0">
               <RelationEditor
                 value={inputText}

@@ -17,9 +17,9 @@ export default function GraphVisualizer({ hierarchies = [] }) {
     );
   }
 
-  // Dimension settings
+  // Dimension settings (Expanded height and widths for clear layout spacing)
   const width = 800;
-  const height = 450;
+  const height = 550;
 
   const nodes = [];
   const links = [];
@@ -62,15 +62,16 @@ export default function GraphVisualizer({ hierarchies = [] }) {
   // Layout algorithm
   hierarchies.forEach((hierarchy, hIndex) => {
     const scheme = getColorScheme(hierarchy, hIndex);
-    const xMin = hIndex * secWidth + 30;
-    const xMax = (hIndex + 1) * secWidth - 30;
+    const xMin = hIndex * secWidth + 40;
+    const xMax = (hIndex + 1) * secWidth - 40;
 
     if (hierarchy.has_cycle) {
+      // ── Pure Cycle circular layout ──
       const cycleNodes = hierarchy.cycle_nodes || [hierarchy.root];
       const L = cycleNodes.length;
       const cx = (xMin + xMax) / 2;
       const cy = height / 2;
-      const r = Math.min(secWidth / 3.5, 75);
+      const r = Math.min(secWidth / 3.2, 90); // Increased radius
 
       const cyclePositions = {};
 
@@ -103,12 +104,14 @@ export default function GraphVisualizer({ hierarchies = [] }) {
         });
       }
     } else {
+      // ── Tree layout ──
       const tree = hierarchy.tree;
       const root = hierarchy.root;
 
+      // Spreads children and parents using depth scaling
       const traverseTree = (nodeName, currentSubtree, depth, xStart, xEnd) => {
         const x = (xStart + xEnd) / 2;
-        const y = 60 + depth * 90;
+        const y = 80 + depth * 110; // Spaced vertical depth
 
         const parentPos = { x, y };
 
@@ -155,7 +158,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
         nodes.push({
           name: root,
           x: (xMin + xMax) / 2,
-          y: 60,
+          y: 80,
           scheme,
           isCycle: false,
         });
@@ -189,9 +192,8 @@ export default function GraphVisualizer({ hierarchies = [] }) {
           className="w-full h-full select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Filters for neon glow dropshadows */}
+          {/* Filters and Arrowhead Markers */}
           <defs>
-            {/* Technical grid pattern */}
             <pattern id="workspace-grid" width="24" height="24" patternUnits="userSpaceOnUse">
               <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255, 255, 255, 0.015)" strokeWidth="1" />
             </pattern>
@@ -206,25 +208,25 @@ export default function GraphVisualizer({ hierarchies = [] }) {
               <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#f43f5e" floodOpacity="0.8" />
             </filter>
 
-            {/* Directing arrows for connection paths */}
-            <marker id="arrow-purple" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            {/* Directing arrows for connection paths — refX is aligned with circle boundary (radius 23) */}
+            <marker id="arrow-purple" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6" />
             </marker>
-            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <marker id="arrow-cyan" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4" />
             </marker>
-            <marker id="arrow-rose" viewBox="0 0 10 10" refX="23" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <marker id="arrow-rose" viewBox="0 0 10 10" refX="28" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e" />
             </marker>
 
-            {/* Directing arrows on hovered edges (darker/thicker glow) */}
-            <marker id="arrow-purple-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            {/* Hover arrow indicators — refX aligned with hover circle boundary (radius 27) */}
+            <marker id="arrow-purple-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc" />
             </marker>
-            <marker id="arrow-cyan-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arrow-cyan-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee" />
             </marker>
-            <marker id="arrow-rose-hover" viewBox="0 0 10 10" refX="25" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arrow-rose-hover" viewBox="0 0 10 10" refX="32" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="#fb7185" />
             </marker>
           </defs>
@@ -237,7 +239,6 @@ export default function GraphVisualizer({ hierarchies = [] }) {
             const isHovered = hoveredNode === link.fromName || hoveredNode === link.toName;
             return (
               <g key={idx}>
-                {/* Dynamic thick background glow on hover */}
                 {isHovered && (
                   <line
                     x1={link.from.x}
@@ -256,7 +257,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
                   x2={link.to.x}
                   y2={link.to.y}
                   stroke={isHovered ? '#ffffff' : link.scheme.stroke}
-                  strokeWidth={isHovered ? '2.5' : '1.8'}
+                  strokeWidth={isHovered ? '2.8' : '2.2'}
                   opacity={isHovered ? '1' : '0.75'}
                   markerEnd={isHovered ? link.scheme.markerHover : link.scheme.marker}
                   className="transition-all duration-300"
@@ -268,7 +269,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
           {/* Render Nodes */}
           {nodes.map((node, idx) => {
             const isHovered = hoveredNode === node.name;
-            const radius = isHovered ? 21 : 18;
+            const radius = isHovered ? 27 : 23; // Substantially larger node sizes
 
             return (
               <g
@@ -283,7 +284,7 @@ export default function GraphVisualizer({ hierarchies = [] }) {
                   cy={node.y}
                   r={radius}
                   stroke={isHovered ? '#ffffff' : node.scheme.stroke}
-                  strokeWidth={isHovered ? '3' : '2'}
+                  strokeWidth={isHovered ? '3.5' : '2.5'}
                   fill={node.scheme.fill}
                   filter={node.scheme.glow}
                   className="transition-all duration-300 ease-out"
@@ -305,9 +306,9 @@ export default function GraphVisualizer({ hierarchies = [] }) {
                   y={node.y}
                   textAnchor="middle"
                   dy=".3em"
-                  fill={isHovered ? '#ffffff' : '#e2e8f0'}
-                  fontSize={isHovered ? '12' : '11'}
-                  fontWeight="700"
+                  fill={isHovered ? '#ffffff' : '#f1f5f9'}
+                  fontSize={isHovered ? '13' : '12'}
+                  fontWeight="800"
                   fontFamily="'JetBrains Mono', monospace"
                   className="transition-all duration-300 ease-out"
                 >
@@ -316,14 +317,14 @@ export default function GraphVisualizer({ hierarchies = [] }) {
 
                 {/* Cycle Warning icon overlay */}
                 {node.isCycle && (
-                  <g transform={`translate(${node.x + 10}, ${node.y + 10})`}>
-                    <circle cx="0" cy="0" r="6" fill="#f43f5e" />
+                  <g transform={`translate(${node.x + 12}, ${node.y + 12})`}>
+                    <circle cx="0" cy="0" r="7" fill="#f43f5e" />
                     <text
                       x="0"
                       y="0"
                       textAnchor="middle"
                       dy=".3em"
-                      fontSize="7"
+                      fontSize="8"
                       fontWeight="bold"
                       fill="#ffffff"
                     >
@@ -332,7 +333,6 @@ export default function GraphVisualizer({ hierarchies = [] }) {
                   </g>
                 )}
 
-                {/* Tooltip on hover */}
                 <title>Node {node.name} {node.isCycle ? '(In Cycle Component)' : ''}</title>
               </g>
             );

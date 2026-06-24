@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 
-export default function RelationEditor({ value = '', onChange }) {
+export default function RelationEditor({ value = '', onChange, onValidate, loading }) {
   const textareaRef = useRef(null);
   const backdropRef = useRef(null);
   const lineNumbersRef = useRef(null);
@@ -13,6 +13,14 @@ export default function RelationEditor({ value = '', onChange }) {
       const scrollTop = textareaRef.current.scrollTop;
       if (lineNumbersRef.current) lineNumbersRef.current.scrollTop = scrollTop;
       if (backdropRef.current) backdropRef.current.scrollTop = scrollTop;
+    }
+  };
+
+  // Trigger validate on Ctrl + Enter key combination
+  const handleKeyDown = (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      if (onValidate) onValidate();
     }
   };
 
@@ -39,7 +47,6 @@ export default function RelationEditor({ value = '', onChange }) {
     html = html.replace(/,/g, '<span class="text-accent-amber font-bold">,</span>');
 
     // Format Nodes (uppercase characters A-Z) in neon cyan
-    // This matching groups isolated uppercase letters
     html = html.replace(/\b([A-Z])\b/g, '<span class="text-accent-cyan font-bold">$1</span>');
 
     return html;
@@ -115,6 +122,7 @@ export default function RelationEditor({ value = '', onChange }) {
             value={value}
             onChange={(e) => onChange && onChange(e.target.value)}
             onScroll={handleScroll}
+            onKeyDown={handleKeyDown}
             spellCheck="false"
             className="absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none px-5 py-4 text-transparent caret-white focus:ring-0 leading-6 overflow-y-auto font-mono selection:bg-accent-purple/35 selection:text-white"
             style={{
@@ -123,6 +131,35 @@ export default function RelationEditor({ value = '', onChange }) {
             placeholder={`# Define relationships (Parent -> Child)\nA -> B\nB -> C, D`}
           />
         </div>
+      </div>
+
+      {/* Footer bar with Build Trees validate trigger */}
+      <div className="px-5 py-4 border-t border-border bg-[#0a0a0f]/40 flex items-center justify-between shrink-0">
+        <span className="text-[10px] text-foreground/35 font-mono">
+          Press <kbd className="bg-surface-secondary px-1.5 py-0.5 rounded border border-border">Ctrl + Enter</kbd> to run
+        </span>
+
+        <button
+          type="button"
+          onClick={onValidate}
+          disabled={loading}
+          className="px-5 py-2.5 text-xs font-bold rounded-xl bg-accent-purple hover:bg-accent-purple/90 text-white transition shadow-lg shadow-accent-purple/20 flex items-center space-x-2 border border-accent-purple/40"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <span>Building...</span>
+            </>
+          ) : (
+            <>
+              <span>⚡</span>
+              <span>Build Trees</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
