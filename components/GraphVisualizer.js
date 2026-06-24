@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-export default function GraphVisualizer({ hierarchies = [] }) {
+export default function GraphVisualizer({ hierarchies = [], onValidate, loading }) {
   const [hoveredNode, setHoveredNode] = useState(null);
 
   if (!hierarchies || hierarchies.length === 0) {
@@ -167,18 +167,50 @@ export default function GraphVisualizer({ hierarchies = [] }) {
 
   return (
     <div className="w-full flex flex-col h-full bg-[#12121a]/30 border border-border/80 rounded-3xl p-6 relative overflow-hidden backdrop-blur-md transition-all duration-300 hover:border-white/10">
-      {/* Visualizer Header */}
-      <div className="flex items-center justify-between mb-4 border-b border-border/40 pb-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">
+      {/* Visualizer Header matching mockup */}
+      <div className="flex items-center justify-between mb-3 border-b border-border/40 pb-2.5">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80 font-mono">
           HIERARCHY VIEW
         </h3>
-        <div className="flex space-x-2">
-          <span className="text-[10px] bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald px-2 py-0.5 rounded font-mono font-semibold">
+        <div className="flex items-center space-x-2">
+          {/* Refresh View Button */}
+          <button
+            type="button"
+            onClick={onValidate}
+            className="px-3 py-1.5 rounded-xl bg-surface-secondary border border-border hover:bg-surface-hover text-[11px] font-semibold text-foreground/85 transition"
+          >
+            Refresh View
+          </button>
+          
+          {/* Validate Button */}
+          <button
+            type="button"
+            onClick={onValidate}
+            disabled={loading}
+            className="px-4 py-1.5 rounded-xl bg-[#8b5cf6] hover:bg-[#8b5cf6]/90 text-white text-[11px] font-bold transition flex items-center space-x-1.5 shadow-lg shadow-accent-purple/10"
+          >
+            {loading ? <span>Validating...</span> : <span>✓ Validate</span>}
+          </button>
+        </div>
+      </div>
+
+      {/* Build Status Sub-row matching mockup */}
+      <div className="flex items-center justify-between mb-3 text-[11px] font-mono">
+        <div className="flex items-center space-x-1.5">
+          <span className="text-foreground/45">Build Status:</span>
+          <span className="bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald px-2 py-0.5 rounded font-semibold text-[10px]">
             Success [✓ Validated]
           </span>
-          {hierarchies.some((h) => h.has_cycle) && (
-            <span className="text-[10px] bg-accent-rose/10 border border-accent-rose/20 text-accent-rose px-2 py-0.5 rounded font-mono font-semibold">
+        </div>
+        <div className="flex items-center space-x-1.5">
+          <span className="text-foreground/45">Errors:</span>
+          {hierarchies.some((h) => h.has_cycle) ? (
+            <span className="bg-accent-rose/10 border border-accent-rose/20 text-accent-rose px-2 py-0.5 rounded font-semibold text-[10px]">
               ⚠️ Warning
+            </span>
+          ) : (
+            <span className="bg-accent-emerald/10 border border-accent-emerald/20 text-accent-emerald px-2 py-0.5 rounded font-semibold text-[10px]">
+              None
             </span>
           )}
         </div>
